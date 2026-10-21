@@ -1,0 +1,160 @@
+<a routerLink="/reservas" class="texto-suave">◀ Voltar para reservas</a>
+<h1>{{ editando() ? '✏️ Editar reserva' : '➕ Nova reserva' }}</h1>
+
+@if (carregando()) {
+  <p class="carregando">Carregando…</p>
+} @else {
+  <form (ngSubmit)="salvar()">
+    <!-- Etapa 1: Hóspede -->
+    <section class="cartao">
+      <h2>1. Hóspede</h2>
+
+      @if (hospede(); as h) {
+        <div class="hospede-escolhido aviso aviso-ok">
+          <div>
+            <strong>{{ h.nome }}</strong><br />
+            <span>{{ h.telefone || 'sem telefone' }} · {{ h.cidade || 'cidade não informada' }}</span>
+          </div>
+          @if (!editando()) {
+            <button type="button" class="btn-secundario btn-pequeno" (click)="hospede.set(null)">Trocar hóspede</button>
+          }
+        </div>
+      } @else if (cadastrandoNovo()) {
+        <p class="texto-suave">Cadastro rápido de novo hóspede:</p>
+        <div class="grade-form">
+          <div class="campo">
+            <label for="novoNome">Nome completo *</label>
+            <input id="novoNome" name="novoNome" [(ngModel)]="novo.nome" required />
+          </div>
+          <div class="campo">
+            <label for="novoTel">Telefone / WhatsApp</label>
+            <input id="novoTel" name="novoTel" type="tel" [(ngModel)]="novo.telefone" />
+          </div>
+          <div class="campo">
+            <label for="novoDoc">Documento (CPF ou RG)</label>
+            <input id="novoDoc" name="novoDoc" [(ngModel)]="novo.documento" />
+          </div>
+          <div class="campo">
+            <label for="novoEmail">E-mail</label>
+            <input id="novoEmail" name="novoEmail" type="email" [(ngModel)]="novo.email" />
+          </div>
+          <div class="campo">
+            <label for="novoCidade">Cidade</label>
+            <input id="novoCidade" name="novoCidade" [(ngModel)]="novo.cidade" />
+          </div>
+        </div>
+        <button type="button" class="btn-secundario btn-pequeno" (click)="cadastrandoNovo.set(false)">Cancelar cadastro</button>
+      } @else {
+        <div class="campo">
+          <label for="buscaHospede">Buscar hóspede já cadastrado (nome, telefone ou documento)</label>
+          <input
+            id="buscaHospede"
+            type="search"
+            autocomplete="off"
+            placeholder="Digite pelo menos 2 letras…"
+            [value]="buscaHospede()"
+            (input)="buscar($any($event.target).value)"
+          />
+        </div>
+        @if (resultados().length) {
+          <ul class="lista-hospedes">
+            @for (h of resultados(); track h.id) {
+              <li>
+                <button type="button" (click)="escolherHospede(h)">
+                  <strong>{{ h.nome }}</strong>&nbsp;<span class="texto-suave">· {{ h.telefone }} · {{ h.cidade }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else if (buscaHospede().trim().length >= 2) {
+          <p class="texto-suave">Nenhum hóspede encontrado com esse nome.</p>
+        }
+        <button type="button" class="btn-secundario" (click)="iniciarNovoHospede()">➕ Cadastrar novo hóspede</button>
+      }
+    </section>
+
+    <!-- Etapa 2: Acomodação e datas -->
+    <section class="cartao">
+      <h2>2. Acomodação e datas</h2>
+      <div class="grade-form">
+        <div class="campo">
+          <label for="acomodacao">Acomodação *</label>
+          <select id="acomodacao" name="acomodacao" [(ngModel)]="form.acomodacao_id" (ngModelChange)="aoMudarDatasOuAcomodacao()">
+            @for (a of acomodacoes(); track a.id) {
+              <option [ngValue]="a.id">{{ a.codigo }} - {{ a.nome }} ({{ a.capacidade }} pessoas)</option>
+            }
+          </select>
+        </div>
+        <div class="campo">
+          <label for="entrada">Check-in (Entrada) *</label>
+          <app-date-field inputId="entrada" name="entrada" [(ngModel)]="form.data_entrada" (ngModelChange)="aoMudarDatasOuAcomodacao()" />
+        </div>
+        <div class="campo">
+          <label for="saida">Check-out (Saída) *</label>
+          <app-date-field inputId="saida" name="saida" [(ngModel)]="form.data_saida" (ngModelChange)="aoMudarDatasOuAcomodacao()" />
+        </div>
+        <div class="campo">
+          <label for="numHospedes">Número de hóspedes *</label>
+          <input id="numHospedes" name="numHospedes" type="number" min="1" [(ngModel)]="form.num_hospedes" />
+          @if (acomodacaoSelecionada(); as a) {
+            @if (form.num_hospedes > a.capacidade) {
+              <small class="erro-campo">Atenção: a capacidade desta acomodação é de {{ a.capacidade }} pessoas.</small>
+            }
+          }
+        </div>
+      </div>
+
+      @if (disponivel() === true) {
+        <p class="disponibilidade aviso-ok">✓ Disponível nessas datas · {{ diarias() }} diária(s)</p>
+      } @else if (disponivel() === false) {
+        <p class="disponibilidade aviso-erro">✗ Ocupado: já existe reserva para esta acomodação nesse período.</p>
+      }
+    </section>
+
+    <!-- Etapa 3: Valores e observações -->
+    <section class="cartao">
+      <h2>3. Valores e observações</h2>
+      <div class="grade-form">
+        <div class="campo">
+          <label for="valor">Valor total da estadia (R$) *</label>
+          <input id="valor" name="valor" type="number" min="0" step="0.01" [(ngModel)]="form.valor_total" (ngModelChange)="valorEditadoManualmente = true" />
+          <small class="texto-suave">
+            Sugerido: {{ diarias() }} × {{ (acomodacaoSelecionada()?.diaria ?? 0) | currency: 'BRL' }}
+            <button type="button" class="btn-secundario btn-pequeno" (click)="recalcularValor(true)">Recalcular</button>
+          </small>
+        </div>
+
+        @if (!editando()) {
+          <div class="campo">
+            <label for="sinal">Sinal / entrada recebida agora (R$)</label>
+            <input id="sinal" name="sinal" type="number" min="0" step="0.01" [(ngModel)]="sinal.valor" />
+            <small class="texto-suave">Opcional. Deixe 0 se ainda não recebeu.</small>
+          </div>
+          <div class="campo">
+            <label for="formaSinal">Forma de pagamento do sinal</label>
+            <select id="formaSinal" name="formaSinal" [(ngModel)]="sinal.forma">
+              <option value="pix">PIX</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao">Cartão</option>
+              <option value="transferencia">Transferência</option>
+            </select>
+          </div>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="obs">Observações</label>
+        <textarea id="obs" name="obs" placeholder="Ex.: chegada prevista às 16h, precisa de berço, aniversário…" [(ngModel)]="form.observacoes"></textarea>
+      </div>
+    </section>
+
+    @if (erro()) {
+      <div class="aviso aviso-erro">{{ erro() }}</div>
+    }
+
+    <div class="acoes-form">
+      <button type="submit" [disabled]="salvando()">{{ salvando() ? 'Salvando…' : '💾 Salvar reserva' }}</button>
+      <a [routerLink]="editando() ? ['/reservas', id()] : ['/reservas']" class="btn btn-secundario">Cancelar</a>
+    </div>
+  </form>
+}

@@ -1,0 +1,154 @@
+<a routerLink="/reservas" class="texto-suave">◀ Voltar para reservas</a>
+
+@if (mensagem()) {
+  <div class="aviso aviso-ok">{{ mensagem() }}</div>
+}
+@if (erro()) {
+  <div class="aviso aviso-erro">{{ erro() }}</div>
+}
+
+@if (carregando()) {
+  <p class="carregando">Carregando…</p>
+} @else if (reserva(); as r) {
+  <div class="cabecalho">
+    <h1>Reserva #{{ r.id }}</h1>
+    <span class="selo" [class]="r.status">{{ rotuloStatus[r.status] }}</span>
+  </div>
+
+  <!-- Dados -->
+  <section class="cartao">
+    <dl class="dados">
+      <div><dt>Hóspede</dt><dd><strong>{{ r.hospede?.nome }}</strong></dd></div>
+      <div><dt>Telefone</dt><dd>{{ r.hospede?.telefone || '—' }}</dd></div>
+      <div><dt>Acomodação</dt><dd>{{ r.acomodacao?.codigo }} - {{ r.acomodacao?.nome }}</dd></div>
+      <div><dt>Nº de hóspedes</dt><dd>{{ r.num_hospedes }}</dd></div>
+      <div><dt>Check-in (Entrada)</dt><dd>{{ br(r.data_entrada) }}</dd></div>
+      <div><dt>Check-out (Saída)</dt><dd>{{ br(r.data_saida) }}</dd></div>
+      <div><dt>Diárias</dt><dd>{{ diarias() }}</dd></div>
+      <div><dt>Valor total</dt><dd>{{ r.valor_total | currency: 'BRL' }}</dd></div>
+      @if (r.checkin_em) {
+        <div><dt>Entrada registrada em</dt><dd>{{ r.checkin_em | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+      }
+      @if (r.checkout_em) {
+        <div><dt>Saída registrada em</dt><dd>{{ r.checkout_em | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+      }
+    </dl>
+    @if (r.observacoes) {
+      <div class="aviso aviso-info"><strong>Observações:</strong> {{ r.observacoes }}</div>
+    }
+  </section>
+
+  <!-- Ações principais -->
+  <section class="cartao acoes">
+    @if (r.status === 'reservada') {
+      <button class="grande" (click)="checkin()" [disabled]="ocupado()">⬇️ Fazer Check-in (Entrada)</button>
+    }
+    @if (r.status === 'hospedado') {
+      <button class="grande btn-azul" (click)="checkout()" [disabled]="ocupado()">⬆️ Fazer Check-out (Saída)</button>
+      @if (saldo() > 0) {
+        <span class="erro-campo">⚠️ Ainda falta receber {{ saldo() | currency: 'BRL' }}. Registre o pagamento abaixo antes da saída.</span>
+      }
+    }
+    @if (r.status === 'reservada' || r.status === 'hospedado') {
+      <a [routerLink]="['/reservas', r.id, 'editar']" class="btn btn-secundario">✏️ Editar</a>
+    }
+    @if (r.status === 'reservada') {
+      @if (!confirmandoCancelamento()) {
+        <button class="btn-secundario" (click)="confirmandoCancelamento.set(true)">✖ Cancelar reserva</button>
+      } @else {
+        <span class="confirmar aviso aviso-erro">
+          Tem certeza que deseja cancelar esta reserva?
+          <button class="btn-perigo btn-pequeno" (click)="cancelar()">Sim, cancelar</button>
+          <button class="btn-secundario btn-pequeno" (click)="confirmandoCancelamento.set(false)">Não</button>
+        </span>
+      }
+    }
+  </section>
+
+  <!-- Pagamentos -->
+  <section class="cartao">
+    <h2>💰 Pagamentos</h2>
+    <div class="totais">
+      <div><span class="texto-suave">Valor total</span><span class="valor-destaque">{{ r.valor_total | currency: 'BRL' }}</span></div>
+      <div><span class="texto-suave">Já recebido</span><span class="valor-destaque saldo-ok">{{ pago() | currency: 'BRL' }}</span></div>
+      <div>
+        <span class="texto-suave">Falta receber</span>
+        <span class="valor-destaque" [class.saldo-aberto]="saldo() > 0" [class.saldo-ok]="saldo() === 0">
+          {{ saldo() | currency: 'BRL' }}
+        </span>
+      </div>
+    </div>
+
+    @if (pagamentosOrdenados().length) {
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr><th>Data</th><th>Tipo</th><th>Forma</th><th>Valor</th><th>Observação</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (p of pagamentosOrdenados(); track p.id) {
+              <tr>
+                <td>{{ br(p.data) }}</td>
+                <td>{{ rotuloTipo[p.tipo] }}</td>
+                <td>{{ rotuloForma[p.forma] }}</td>
+                <td><strong>{{ p.valor | currency: 'BRL' }}</strong></td>
+                <td>{{ p.observacao || '' }}</td>
+                <td>
+                  @if (confirmandoRemocao() === p.id) {
+                    <span class="confirmar">
+                      Remover?
+                      <button class="btn-perigo btn-pequeno" (click)="removerPagamento(p.id)">Sim</button>
+                      <button class="btn-secundario btn-pequeno" (click)="confirmandoRemocao.set(null)">Não</button>
+                    </span>
+                  } @else {
+                    <button class="btn-secundario btn-pequeno" (click)="confirmandoRemocao.set(p.id)">Remover</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="texto-suave">Nenhum pagamento registrado ainda.</p>
+    }
+
+    @if (r.status !== 'cancelada') {
+      <h2>Registrar pagamento</h2>
+      <form (ngSubmit)="adicionarPagamento()">
+        <div class="grade-form">
+          <div class="campo">
+            <label for="pgValor">Valor (R$)</label>
+            <input id="pgValor" name="pgValor" type="number" min="0.01" step="0.01" [(ngModel)]="novoPagamento.valor" />
+          </div>
+          <div class="campo">
+            <label for="pgData">Data</label>
+            <app-date-field inputId="pgData" name="pgData" [(ngModel)]="novoPagamento.data" />
+          </div>
+          <div class="campo">
+            <label for="pgForma">Forma</label>
+            <select id="pgForma" name="pgForma" [(ngModel)]="novoPagamento.forma">
+              <option value="pix">PIX</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao">Cartão</option>
+              <option value="transferencia">Transferência</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="pgTipo">Tipo</label>
+            <select id="pgTipo" name="pgTipo" [(ngModel)]="novoPagamento.tipo">
+              <option value="sinal">Sinal (entrada)</option>
+              <option value="parcela">Parcela</option>
+              <option value="saldo">Saldo final</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="pgObs">Observação</label>
+          <input id="pgObs" name="pgObs" [(ngModel)]="novoPagamento.observacao" placeholder="Opcional" />
+        </div>
+        <button type="submit" [disabled]="ocupado()">➕ Registrar pagamento</button>
+      </form>
+    }
+  </section>
+}

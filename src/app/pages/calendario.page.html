@@ -1,0 +1,137 @@
+<div class="barra-acoes">
+  <h1>📅 Calendário de ocupação</h1>
+  <span class="espaco"></span>
+  <a routerLink="/reservas/nova" class="btn">➕ Nova reserva</a>
+</div>
+
+<!-- Resumo do dia -->
+<section class="resumo">
+  <div class="cartao indicador">
+    <span class="texto-suave">Chegadas hoje</span>
+    <span class="valor-destaque">{{ chegadasHoje().length }}</span>
+  </div>
+  <div class="cartao indicador">
+    <span class="texto-suave">Saídas hoje</span>
+    <span class="valor-destaque">{{ saidasHoje().length }}</span>
+  </div>
+  <div class="cartao indicador">
+    <span class="texto-suave">Hospedados agora</span>
+    <span class="valor-destaque">{{ hospedadosAgora() }}</span>
+  </div>
+  <div class="cartao indicador">
+    <span class="texto-suave">Acomodações livres hoje</span>
+    <span class="valor-destaque">{{ livresHoje() }} de {{ acomodacoes().length }}</span>
+  </div>
+</section>
+
+@if (chegadasHoje().length || saidasHoje().length) {
+  <section class="cartao hoje">
+    @if (chegadasHoje().length) {
+      <h2>⬇️ Check-in (Entrada) previsto para hoje</h2>
+      <ul>
+        @for (r of chegadasHoje(); track r.id) {
+          <li>
+            <strong>{{ r.hospede?.nome }}</strong> — {{ r.acomodacao?.nome }}
+            <a [routerLink]="['/reservas', r.id]" class="btn btn-pequeno">Abrir e fazer check-in</a>
+          </li>
+        }
+      </ul>
+    }
+    @if (saidasHoje().length) {
+      <h2>⬆️ Check-out (Saída) previsto para hoje</h2>
+      <ul>
+        @for (r of saidasHoje(); track r.id) {
+          <li>
+            <strong>{{ r.hospede?.nome }}</strong> — {{ r.acomodacao?.nome }}
+            <a [routerLink]="['/reservas', r.id]" class="btn btn-pequeno btn-azul">Abrir e fazer check-out</a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}
+
+<!-- Navegação do mês -->
+<div class="barra-acoes navegacao">
+  <button class="btn-secundario" (click)="mudarMes(-1)" aria-label="Mês anterior">◀ Anterior</button>
+  <h2 class="titulo-mes">{{ tituloMes() }}</h2>
+  <button class="btn-secundario" (click)="mudarMes(1)" aria-label="Próximo mês">Próximo ▶</button>
+  <button class="btn-secundario" (click)="irParaHoje()">Hoje</button>
+  <span class="espaco"></span>
+  <div>
+    <label for="filtroTipo">Mostrar</label>
+    <select id="filtroTipo" [value]="filtroTipo()" (change)="filtroTipo.set($any($event.target).value)">
+      <option value="">Todas as acomodações</option>
+      <option value="chale">Somente chalés</option>
+      <option value="suite">Somente suítes</option>
+    </select>
+  </div>
+</div>
+
+<!-- Legenda: cor + ícone + texto (não só cor) -->
+<div class="legenda" aria-label="Legenda">
+  <span><i class="amostra livre">✓</i> Livre</span>
+  <span><i class="amostra ocupado">●</i> Ocupado</span>
+  <span><i class="amostra entrada-hoje">⬇</i> Entrada hoje</span>
+  <span><i class="amostra saida-hoje">⬆</i> Saída hoje</span>
+  <span class="texto-suave">Clique num dia livre para reservar, ou num dia ocupado para ver a reserva.</span>
+</div>
+
+@if (erro()) {
+  <div class="aviso aviso-erro">{{ erro() }}</div>
+}
+
+<div class="grade-wrap" [class.opaco]="carregando()">
+  <table class="grade">
+    <thead>
+      <tr>
+        <th class="col-acomodacao">Acomodação</th>
+        @for (d of dias(); track d.iso) {
+          <th [class.hoje]="d.iso === hoje" [class.fds]="d.fimDeSemana">
+            <span class="dia-semana">{{ d.semana }}</span>
+            <span class="dia-numero">{{ d.numero }}</span>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (linha of grade(); track linha.acomodacao.id) {
+        <tr>
+          <th class="col-acomodacao" scope="row">
+            <span class="codigo">{{ linha.acomodacao.codigo }}</span>
+            {{ linha.acomodacao.nome }}
+            <small class="texto-suave">({{ linha.acomodacao.capacidade }} pessoas)</small>
+          </th>
+          @for (c of linha.celulas; track c.dia) {
+            <td
+              [class]="c.estado"
+              [class.hoje]="c.dia === hoje"
+              [attr.title]="descricao(linha.acomodacao, c)"
+              [attr.aria-label]="descricao(linha.acomodacao, c)"
+              role="button"
+              tabindex="0"
+              (click)="clicarCelula(linha.acomodacao, c)"
+              (keydown.enter)="clicarCelula(linha.acomodacao, c)"
+            >
+              @switch (c.estado) {
+                @case ('ocupado') {
+                  @if (c.inicio) {
+                    <span class="nome">{{ primeiroNome(c.reserva) }}</span>
+                  } @else {
+                    ●
+                  }
+                }
+                @case ('entrada-hoje') { ⬇ }
+                @case ('saida-hoje') { ⬆ }
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (carregando()) {
+  <p class="carregando">Carregando…</p>
+}

@@ -1,0 +1,279 @@
+/* =========================================================
+   Estilos globais - foco em acessibilidade (ajustes do piloto):
+   fonte base 18px, alto contraste, botões grandes, ícone + texto.
+   Paleta baseada na proposta do PEX V (Anexo B.7), com tons
+   escurecidos onde necessário para atingir contraste WCAG AA.
+   ========================================================= */
+:root {
+  --verde: #2e7d32;
+  --verde-escuro: #1b5e20;
+  --verde-claro: #e8f5e9;
+  --vermelho: #c62828;
+  --vermelho-claro: #ffebee;
+  --amarelo: #ffc107;
+  --laranja: #ff9800;
+  --azul: #1565c0;
+  --fundo: #fafafa;
+  --texto: #212121;
+  --texto-suave: #424242;
+  --borda: #bdbdbd;
+  --branco: #fff;
+  --raio: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%; /* alterado pelo botão A+ */
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.5;
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0.5rem 0 1rem;
+}
+h2 {
+  font-size: 1.3rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+a {
+  color: var(--azul);
+}
+
+/* ---------- Botões ---------- */
+button,
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 48px;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--raio);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  background: var(--verde);
+  color: #fff;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  &:focus-visible {
+    outline: 3px solid var(--azul);
+    outline-offset: 2px;
+  }
+}
+
+.btn-secundario {
+  background: #fff;
+  color: var(--verde-escuro);
+  border-color: var(--verde);
+}
+.btn-perigo {
+  background: var(--vermelho);
+}
+.btn-azul {
+  background: var(--azul);
+}
+.btn-pequeno {
+  min-height: 38px;
+  padding: 0.3rem 0.8rem;
+  font-size: 1rem;
+}
+
+/* ---------- Formulários ---------- */
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  color: var(--texto);
+  background: #fff;
+  border: 2px solid var(--borda);
+  border-radius: var(--raio);
+
+  &:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgb(21 101 192 / 0.2);
+  }
+  &.invalido {
+    border-color: var(--vermelho);
+  }
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.campo {
+  margin-bottom: 1rem;
+}
+
+.grade-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 1rem;
+}
+
+.erro-campo {
+  color: var(--vermelho);
+  font-weight: 600;
+}
+
+/* ---------- Cartões, avisos, tabelas ---------- */
+.cartao {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--raio);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+}
+
+.cartao > h2:first-child,
+.cartao > form > h2:first-child {
+  margin-top: 0;
+}
+
+.aviso {
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--raio);
+  margin: 0.75rem 0;
+  font-weight: 500;
+  border-left: 6px solid;
+}
+.aviso-erro {
+  background: var(--vermelho-claro);
+  border-color: var(--vermelho);
+  color: #7f0000;
+}
+.aviso-ok {
+  background: var(--verde-claro);
+  border-color: var(--verde);
+  color: var(--verde-escuro);
+}
+.aviso-info {
+  background: #e3f2fd;
+  border-color: var(--azul);
+  color: #0d47a1;
+}
+
+.tabela-wrap {
+  overflow-x: auto;
+}
+
+table.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+  }
+  th {
+    background: #f1f1f1;
+    font-weight: 700;
+  }
+  tbody tr:hover {
+    background: #f9fbe7;
+  }
+}
+
+.barra-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+
+  .espaco {
+    flex: 1;
+  }
+}
+
+.selo {
+  display: inline-block;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.reservada {
+    background: #e3f2fd;
+    color: #0d47a1;
+  }
+  &.hospedado {
+    background: var(--verde-claro);
+    color: var(--verde-escuro);
+  }
+  &.finalizada {
+    background: #eeeeee;
+    color: #424242;
+  }
+  &.cancelada {
+    background: var(--vermelho-claro);
+    color: #7f0000;
+  }
+  &.pendente {
+    background: #fff3e0;
+    color: #8a4b00;
+  }
+  &.pago {
+    background: var(--verde-claro);
+    color: var(--verde-escuro);
+  }
+}
+
+.texto-suave {
+  color: var(--texto-suave);
+}
+
+.valor-destaque {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.carregando {
+  padding: 2rem;
+  text-align: center;
+  color: var(--texto-suave);
+}

@@ -1,0 +1,31 @@
+{
+  "name": "guesthouse-manager",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "config": "node scripts/set-env.mjs",
+    "prestart": "node scripts/set-env.mjs",
+    "start": "ng serve",
+    "prebuild": "node scripts/set-env.mjs",
+    "build": "ng build"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.27",
+    "@angular/cli": "^21.2.27",
+    "@angular/compiler-cli": "^21.2.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
+  }
+}

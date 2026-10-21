@@ -1,0 +1,38 @@
+@if (auth.session()) {
+  <header class="topo">
+    <a routerLink="/calendario" class="marca" (click)="menuAberto.set(false)">
+      <span class="marca-icone" aria-hidden="true">🏡</span>
+      <span>Pouso no Curral</span>
+    </a>
+
+    <button class="btn-menu" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()">
+      ☰ Menu
+    </button>
+
+    <nav [class.aberto]="menuAberto()" (click)="menuAberto.set(false)">
+      <a routerLink="/calendario" routerLinkActive="ativo">📅 Calendário</a>
+      <a routerLink="/reservas" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: false }">📋 Reservas</a>
+      <a routerLink="/hospedes" routerLinkActive="ativo">👤 Hóspedes</a>
+      <a routerLink="/financeiro" routerLinkActive="ativo">💰 Financeiro</a>
+    </nav>
+
+    <div class="acoes-topo">
+      <button class="btn-fonte" (click)="alternarFonte()" title="Aumentar tamanho da letra">
+        A+ <small>{{ fonte() }}%</small>
+      </button>
+      <button class="btn-sair" (click)="sair()">Sair</button>
+    </div>
+  </header>
+}
+
+@if (!configurado) {
+  <div class="aviso aviso-erro container">
+    <strong>Sistema não configurado.</strong> Crie o arquivo <code>.env</code> com
+    <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code> (veja o README) e rode
+    <code>npm start</code> novamente.
+  </div>
+}
+
+<main class="container">
+  <router-outlet />
+</main>
