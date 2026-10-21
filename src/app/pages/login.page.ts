@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { mensagemErro } from '../core/supabase.service';
 import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login-page',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="login cartao">
       <div class="logo" aria-hidden="true">🏡</div>
@@ -41,6 +41,7 @@ import { environment } from '../../environments/environment';
           </button>
         </div>
       }
+      <p class="ajuda"><a routerLink="/ajuda">❓ Manual e vídeos de ajuda</a></p>
     </div>
   `,
   styles: `
@@ -48,6 +49,7 @@ import { environment } from '../../environments/environment';
     .logo { font-size: 3rem; }
     form { text-align: left; margin-top: 1.5rem; }
     .largo { width: 100%; }
+    .ajuda { margin-top: 1.25rem; }
     .demo { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; }
   `,
 })
